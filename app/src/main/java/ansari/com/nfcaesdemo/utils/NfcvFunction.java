@@ -8,17 +8,19 @@ import android.nfc.Tag;
 import android.nfc.tech.NfcV;
 import android.util.Log;
 
+import static ansari.com.nfcaesdemo.utils.StringFunction.getHexString;
 
-/**
- * Created by cola on 15/5/5.
- */
+
 public class NfcvFunction {
-
     static String TAG = "NfcV";
-    final protected static char[] hexArray = "0123456789ABCDEF".toCharArray();
 
-    public static void write(Tag tag, byte[] data, int blockNum) throws IOException,
-            FormatException, InterruptedException {
+
+    public static void write(Tag tag, byte[] data, int blockNum) throws Exception {
+
+        if(data.length % 4 != 0)
+            throw  new Exception("data must be multiplication of 4 bytes");
+
+
         if (tag == null) {
             return;
         }
@@ -118,24 +120,6 @@ public class NfcvFunction {
     }
 
 
-    public static byte[] hexStringToByteArray(String s) throws  Exception{
-        int len = s.length();
-        byte[] data = new byte[len / 2];
-        for (int i = 0; i < len; i += 2) {
-            data[i / 2] = (byte) ((Character.digit(s.charAt(i), 16) << 4) + Character
-                    .digit(s.charAt(i + 1), 16));
-        }
-        return data;
-    }
 
-    public static String getHexString(byte[] bytesData) throws Exception {
-        char[] hexChars = new char[bytesData.length * 2];
-        for (int j = 0; j < bytesData.length; j++) {
-            int v = bytesData[j] & 0xFF;
-            hexChars[j * 2] = hexArray[v >>> 4];
-            hexChars[j * 2 + 1] = hexArray[v & 0x0F];
-        }
-        return new String(hexChars);
-    }
 
 }

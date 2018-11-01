@@ -5,7 +5,9 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.nfc.NfcAdapter;
 import android.nfc.Tag;
+import android.os.Build;
 import android.os.Bundle;
+import android.support.annotation.RequiresApi;
 import android.support.design.widget.Snackbar;
 import android.view.View;
 import android.support.design.widget.NavigationView;
@@ -18,11 +20,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageButton;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import ansari.com.nfcaesdemo.utils.AES;
 import ansari.com.nfcaesdemo.utils.NfcvFunction;
 import ansari.com.nfcaesdemo.R;
+import ansari.com.nfcaesdemo.utils.Settings;
+import ansari.com.nfcaesdemo.utils.StringFunction;
 
 public class Main extends AppCompatActivity
         implements NavigationView.OnNavigationItemSelectedListener {
@@ -33,13 +39,12 @@ public class Main extends AppCompatActivity
     private Tag mytag;
     private NfcAdapter adapter;
 
-    private Button btnWrite;
-    private Button btnRead;
-    private EditText edtWriteBlocKNo;
-    private EditText edtReadBlocKNo;
-    private EditText edtWriteMessage;
-    private EditText edtLength;
-    private TextView txtView;
+    private Button btnKeyChange;
+    private ImageButton btnTap;
+    private EditText edtRaw;
+    private EditText edtKey;
+    private TextView txtLocalCipher;
+    private TextView txtTagCipher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,15 +53,6 @@ public class Main extends AppCompatActivity
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
 
-//        FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
-//        fab.setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View view) {
-//                Snackbar.make(view, "Replace with your own action", Snackbar.LENGTH_LONG)
-//                        .setAction("Action", null).show();
-//
-//            }
-//        });
 
         DrawerLayout drawer = (DrawerLayout) findViewById(R.id.drawer_layout);
         ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(
@@ -68,13 +64,12 @@ public class Main extends AppCompatActivity
         navigationView.setNavigationItemSelectedListener(this);
 
 
-        btnWrite = (Button) findViewById(R.id.btn_write);
-        btnRead = (Button) findViewById(R.id.btn_read);
-        edtWriteBlocKNo = (EditText) findViewById(R.id.edt_write_block_no);
-        edtReadBlocKNo = (EditText) findViewById(R.id.edt_read_block_no);
-        edtWriteMessage = (EditText) findViewById(R.id.edt_write_message);
-        edtLength = (EditText) findViewById(R.id.edt_length);
-        txtView = (TextView) findViewById(R.id.txt_view);
+        btnKeyChange = (Button) findViewById(R.id.btnKeyChange);
+        btnTap = (ImageButton) findViewById(R.id.btnTap);
+        edtRaw = (EditText) findViewById(R.id.edtRaw);
+        edtKey = (EditText) findViewById(R.id.edtKey);
+        txtLocalCipher = (TextView) findViewById(R.id.txtLocalCipher);
+        txtTagCipher = (TextView) findViewById(R.id.txtTagCipher);
 
 
         adapter = NfcAdapter.getDefaultAdapter(this);
@@ -83,8 +78,10 @@ public class Main extends AppCompatActivity
         tagDetected.addCategory(Intent.CATEGORY_DEFAULT);
         writeTagFilters = new IntentFilter[]{tagDetected};
 
+        edtKey.setText(Settings.getInstance().getSavedKey());
 
-        btnWrite.setOnClickListener(new View.OnClickListener() {
+
+        btnKeyChange.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (mytag == null) {
@@ -92,51 +89,107 @@ public class Main extends AppCompatActivity
                     return;
                 }
                 try {
-                    if (edtWriteBlocKNo.getText().toString().equals("") || edtWriteMessage.getText().toString().equals("")) {
+                    if (edtKey.getText().toString().equals("") || edtKey.getText().toString().equals("")) {
                         Snackbar.make(view, "enter block number and message", Snackbar.LENGTH_LONG).show();
                         return;
                     }
 
-                    byte[] data = NfcvFunction.hexStringToByteArray(edtWriteMessage.getText().toString());
-                    NfcvFunction.write(mytag, data, Integer.parseInt(edtWriteBlocKNo.getText().toString()));
+                    byte[] completeKey = StringFunction.makeKey(edtKey.getText().toString());
+
+                    NfcvFunction.write(mytag, completeKey, Settings.getInstance().getWriteBlockNo());
+
+                    Settings.getInstance().saveKey(edtKey.getText().toString());
+
                     Snackbar.make(view, "data is written on tag", Snackbar.LENGTH_LONG).show();
+
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                     Snackbar.make(view, "error during writing on tag interrupted exception", Snackbar.LENGTH_LONG).show();
 
                 } catch (Exception e) {
                     e.printStackTrace();
-                    Snackbar.make(view, "error during writing on tag exception", Snackbar.LENGTH_LONG).show();
+                    Snackbar.make(view, "error during writing new key on tag", Snackbar.LENGTH_LONG).show();
 
                 }
 
             }
         });
 
-        btnRead.setOnClickListener(new View.OnClickListener()
 
-        {
+        btnTap.setOnClickListener(new View.OnClickListener() {
+            @RequiresApi(api = Build.VERSION_CODES.O)
             @Override
             public void onClick(View view) {
-                int blockNum = Integer.valueOf(edtReadBlocKNo.getText().toString());
-                int length = Integer.valueOf(edtLength.getText().toString());
 
-                String result = "";
-                for (int i = 0; i < blockNum + length; i++) {
-                    try {
-                        byte[] part = NfcvFunction.read(mytag, blockNum + i);
-
-                        result += NfcvFunction.getHexString(part).substring(2, 10);
-                        txtView.setText(result);
-                    } catch (Exception e) {
-                        Snackbar.make(view, "error during reading tag", Snackbar.LENGTH_LONG).show();
-                        e.printStackTrace();
-                    }
-
+                if (mytag == null) {
+                    Snackbar.make(view, "tag is not detected", Snackbar.LENGTH_LONG).show();
+                    return;
                 }
 
+                try {
+                    byte[] key = StringFunction.hexStringToByteArray(Settings.getInstance().getSavedKey());
+                    byte[] localCipher = AES.encrypt(StringFunction.hexStringToByteArray(edtRaw.getText().toString()), key);
+
+                    if (localCipher == null) {
+                        Snackbar.make(view, "could not make local cipher", Snackbar.LENGTH_LONG).show();
+                        return;
+
+                    }
+                    txtLocalCipher.setText(StringFunction.getHexString(localCipher));
+
+                    byte[] completeData = StringFunction.makeData(edtRaw.getText().toString());
+                    NfcvFunction.write(mytag, completeData, Settings.getInstance().getWriteBlockNo());
+
+                    int blockNum = Settings.getInstance().getReadDataBlockNo();
+                    int length = Settings.getInstance().getReadDataBlockLength();
+
+                    String result = "";
+                    for (int i = blockNum; i <= blockNum + length; i++) {
+                        try {
+                            byte[] part = NfcvFunction.read(mytag, i);
+
+                            result += StringFunction.getHexString(part).substring(2, 10);
+                            txtTagCipher.setText(result);
+                        } catch (Exception e) {
+                            Snackbar.make(view, "error during reading tag", Snackbar.LENGTH_LONG).show();
+                            e.printStackTrace();
+                        }
+
+                    }
+
+
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Snackbar.make(view, "error during writing data on tag", Snackbar.LENGTH_LONG).show();
+
+                }
             }
         });
+
+//        btnRead.setOnClickListener(new View.OnClickListener()
+//
+//        {
+//            @Override
+//            public void onClick(View view) {
+//                int blockNum = Integer.valueOf(edtReadBlocKNo.getText().toString());
+//                int length = Integer.valueOf(edtLength.getText().toString());
+//
+//                String result = "";
+//                for (int i = 0; i < blockNum + length; i++) {
+//                    try {
+//                        byte[] part = NfcvFunction.read(mytag, blockNum + i);
+//
+//                        result += NfcvFunction.getHexString(part).substring(2, 10);
+//                        txtView.setText(result);
+//                    } catch (Exception e) {
+//                        Snackbar.make(view, "error during reading tag", Snackbar.LENGTH_LONG).show();
+//                        e.printStackTrace();
+//                    }
+//
+//                }
+//
+//            }
+//        });
 
 
     }
@@ -199,7 +252,7 @@ public class Main extends AppCompatActivity
     protected void onNewIntent(Intent intent) {
         if (NfcAdapter.ACTION_TAG_DISCOVERED.equals(intent.getAction())) {
             mytag = intent.getParcelableExtra(NfcAdapter.EXTRA_TAG);
-            Toast.makeText(Main.this, "tag detected" , Toast.LENGTH_SHORT).show();
+            Toast.makeText(Main.this, "tag detected", Toast.LENGTH_SHORT).show();
 
         }
     }
