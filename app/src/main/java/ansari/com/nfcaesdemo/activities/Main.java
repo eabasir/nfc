@@ -208,11 +208,20 @@ public class Main extends AppCompatActivity
     }
 
     private void WriteModeOn() {
-        adapter.enableForegroundDispatch(this, pendingIntent, writeTagFilters, null);
+        try {
+
+            adapter.enableForegroundDispatch(this, pendingIntent, writeTagFilters, null);
+        } catch (Exception e) {
+        }
+
     }
 
     private void WriteModeOff() {
-        adapter.disableForegroundDispatch(this);
+        try {
+
+            adapter.disableForegroundDispatch(this);
+        } catch (Exception e) {
+        }
     }
 
 
@@ -262,18 +271,9 @@ public class Main extends AppCompatActivity
     public boolean onNavigationItemSelected(MenuItem item) {
         // Handle navigation view item clicks here.
         int id = item.getItemId();
-
-        if (id == R.id.nav_camera) {
-            // Handle the camera action
-        } else if (id == R.id.nav_gallery) {
-
-        } else if (id == R.id.nav_slideshow) {
-
-        } else if (id == R.id.nav_manage) {
-
-        } else if (id == R.id.nav_share) {
-
-        } else if (id == R.id.nav_send) {
+        if (id == R.id.nav_manage) {
+            Intent myIntent = new Intent(Main.this, URL.class);
+            Main.this.startActivity(myIntent);
 
         }
 

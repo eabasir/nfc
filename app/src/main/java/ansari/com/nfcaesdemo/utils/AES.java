@@ -23,14 +23,14 @@ public class AES {
         return null;
     }
     @RequiresApi(api = Build.VERSION_CODES.O)
-    public static String decrypt(String encryptedText, byte[] key) {
+    public static byte[] decrypt(byte[] encrypted, byte[] key) {
         try {
             Cipher cipher = Cipher.getInstance("AES/ECB/NoPadding");
             SecretKeySpec secretKey = new SecretKeySpec(key, "AES");
             cipher.init(Cipher.DECRYPT_MODE, secretKey);
-            byte[] cipherText = Base64.getDecoder().decode(encryptedText.getBytes("UTF8"));
-            String decryptedString = new String(cipher.doFinal(cipherText),"UTF-8");
-            return decryptedString;
+//            byte[] cipherText = Base64.getDecoder().decode(encrypted);
+            return cipher.doFinal(encrypted);
+
         } catch (Exception e) {
             e.printStackTrace();
         }
