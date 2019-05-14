@@ -18,12 +18,9 @@ import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.nio.ByteBuffer;
-import java.nio.ByteOrder;
-import java.util.Arrays;
-
+import ansari.com.nfcaesdemo.Lib;
 import ansari.com.nfcaesdemo.R;
-import ansari.com.nfcaesdemo.utils.AES;
+import ansari.com.nfcaesdemo.types.NFCData;
 import ansari.com.nfcaesdemo.utils.StringFunction;
 
 public class URL extends AppCompatActivity
@@ -62,65 +59,18 @@ public class URL extends AppCompatActivity
             public void onClick(View view) {
                 if (!edtURL.getText().toString().equals("") && !edtKey.getText().toString().equals("")) {
 
-                    try {
 
 
-                        String part = edtURL.getText().toString().replace("https://pas.kishisc.ir/map", "");
 
+                    NFCData nfcData = new Lib().extractNFCInfo(edtURL.getText().toString(), "https://pas.kishisc.ir/map", edtURL.getText().toString());
 
-                        byte[] arr_url = part.getBytes("UTF-8");
+                    txtEncHex.setText(nfcData.EncryptedHEX);
+                    txtDecHex.setText(nfcData.DycreptedHEX);
+                    txtDecHex.setText(nfcData.DycreptedHEX);
 
-                        arr_url = Arrays.copyOfRange(arr_url, 0, 32);
+                    txtSerial.setText(nfcData.Serial + "");
+                    txtCount.setText(nfcData.Count + "");
 
-
-                        String encryptedHex = "";
-                        for (int i = 0; i < arr_url.length; i++) {
-
-                            byte[] curByte = new byte[1];
-                            curByte[0] = (byte) (arr_url[i] - 0x30);
-
-
-                            String hex = StringFunction.getHexString(curByte);
-                            if (hex.substring(0, 1).equals("0"))
-                                hex = hex.substring(1);
-
-                            encryptedHex += hex;
-
-                        }
-                        txtEncHex.setText(encryptedHex);
-
-
-                        byte[] key = StringFunction.hexStringToByteArray(edtKey.getText().toString());
-
-
-                        byte[] hash = StringFunction.hexStringToByteArray(encryptedHex);
-
-
-                        byte[] decrypted = AES.decrypt(hash, key);
-
-                        if (decrypted != null && decrypted.length > 0) {
-
-                            String decryptedHex = StringFunction.getHexString(decrypted);
-
-                            txtDecHex.setText(decryptedHex);
-
-
-                            byte[] arr_serial = Arrays.copyOfRange(decrypted, 0, 4);
-                            byte[] arr_count = Arrays.copyOfRange(decrypted, 10, 12);
-
-                            int serial = ByteBuffer.wrap(arr_serial).getInt();
-
-                            int count = ((arr_count[1] & 0xff) << 8) | (arr_count[0] & 0xff);
-
-                            txtSerial.setText(serial + "");
-                            txtCount.setText(count + "");
-
-                        }
-
-
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
                 }
 
 

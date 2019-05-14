@@ -36,4 +36,9 @@ public class AES {
         }
         return null;
     }
+
+
+    public int test(){
+        return  1;
+    }
 }
