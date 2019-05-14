@@ -1,9 +1,10 @@
-apply plugin: 'com.android.library'
+apply plugin: 'com.android.application'
 
 android {
     compileSdkVersion 28
     defaultConfig {
-        minSdkVersion 21
+        applicationId "ansari.com.nfcaesdemo"
+        minSdkVersion 23
         targetSdkVersion 28
         versionCode 1
         versionName "1.0"
@@ -27,16 +28,3 @@ dependencies {
     androidTestImplementation 'com.android.support.test:runner:1.0.2'
     androidTestImplementation 'com.android.support.test.espresso:espresso-core:3.0.2'
 }
-
-task deleteJar(type: Delete) {
-    delete 'libs/jars/nfc.jar'
-}
-
-task createJar(type: Copy) {
-    from('build/intermediates/packaged-classes/release/')
-    into('libs/jars/')
-    include('classes.jar')
-    rename('classes.jar', 'nfc.jar')
-}
-
-createJar.dependsOn(deleteJar, build)
