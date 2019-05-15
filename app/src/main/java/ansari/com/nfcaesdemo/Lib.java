@@ -38,7 +38,7 @@ public class Lib {
             for (int i = 0; i < arr_url.length; i++) {
 
                 byte[] curByte = new byte[1];
-                curByte[0] = (byte) (arr_url[i] - 0x30);
+                curByte[0] = (byte) (arr_url[i] - 0x41);
 
 
                 String hex = StringFunction.getHexString(curByte);
