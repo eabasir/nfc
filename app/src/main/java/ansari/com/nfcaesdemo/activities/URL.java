@@ -51,7 +51,7 @@ public class URL extends AppCompatActivity
         this.txtSerial = (TextView) findViewById(R.id.txtSerial);
         this.txtCount = (TextView) findViewById(R.id.txtCount);
 
-        this.edtURL.setText("https://pas.kishisc.ir/map=;>:<12<1:383=32=21;80329905>?57���");
+        this.edtURL.setText("https://pas.kishisc.ir/mapBEJGMKKAIKEPEBKNIAHEABLGJGHHMJDO");
 
         this.btnDecrypt.setOnClickListener(new View.OnClickListener() {
             @TargetApi(Build.VERSION_CODES.O)
@@ -62,7 +62,7 @@ public class URL extends AppCompatActivity
 
 
 
-                    NFCData nfcData = new Lib().extractNFCInfo(edtURL.getText().toString(), "https://pas.kishisc.ir/map", edtURL.getText().toString());
+                    NFCData nfcData = new Lib().extractNFCInfo(edtURL.getText().toString(), "https://pas.kishisc.ir/map", edtKey.getText().toString());
 
                     txtEncHex.setText(nfcData.EncryptedHEX);
                     txtDecHex.setText(nfcData.DycreptedHEX);
