@@ -38,7 +38,7 @@ public class Lib {
             for (int i = 0; i < arr_url.length; i++) {
 
                 byte[] curByte = new byte[1];
-                curByte[0] = (byte) (arr_url[i] - 0x30);
+                curByte[0] = (byte) (arr_url[i] - 0x41);
 
 
                 String hex = StringFunction.getHexString(curByte);
@@ -67,6 +67,7 @@ public class Lib {
 
                 byte[] arr_serial = Arrays.copyOfRange(decrypted, 0, 4);
                 byte[] arr_count = Arrays.copyOfRange(decrypted, 10, 12);
+                byte[] arr_validity = Arrays.copyOfRange(decrypted, 14, 16);
 
                 int serial = ByteBuffer.wrap(arr_serial).getInt();
 
@@ -75,8 +76,12 @@ public class Lib {
                 nfcData.Serial = serial;
                 nfcData.Count = count;
 
+                int validityValue = ((arr_validity[1] & 0xff) << 8) | (arr_validity[0] & 0xff);
+
+                nfcData.validity = validityValue == 0;
+
             }
-            return  nfcData;
+            return nfcData;
 
 
         } catch (Exception e) {
