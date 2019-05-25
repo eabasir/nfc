@@ -68,9 +68,12 @@ public class URL extends AppCompatActivity
                     txtDecHex.setText(nfcData.DycreptedHEX);
                     txtDecHex.setText(nfcData.DycreptedHEX);
 
-                    txtSerial.setText(nfcData.Serial + "");
-                    txtCount.setText(nfcData.Count + "");
-
+                    if(nfcData.validity) {
+                        txtSerial.setText(nfcData.Serial + "");
+                        txtCount.setText(nfcData.Count + "");
+                    }else{
+                        Toast.makeText(URL.this, "invlid data is read", Toast.LENGTH_SHORT).show();
+                    }
                 }
 
 

@@ -6,5 +6,6 @@ public class NFCData {
     public String DycreptedHEX;
     public int Serial;
     public int Count;
+    public boolean validity;
 
 }
